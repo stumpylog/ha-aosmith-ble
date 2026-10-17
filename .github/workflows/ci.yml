@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hacs/action@22.5.0
+        with:
+          category: integration
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.14"
+      - run: uv sync --locked
+      - run: uv run prek run --all-files
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.14"
+      - run: uv sync --locked
+      - run: uv run pytest -q
+
+  # The hacs.json floor is 2026.3.0; this job keeps the oldest tested release
+  # (2026.9) green. pytest-homeassistant-custom-component 0.13.367 pins Home
+  # Assistant 2026.9.4; the other pins match its Bluetooth manifest.
+  test-ha-2026-9:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.14"
+      - run: uv sync --locked
+      - name: Check the overlay runs Home Assistant 2026.9
+        run: >-
+          uv run
+          --with pytest-homeassistant-custom-component==0.13.367
+          --with habluetooth==6.26.11
+          --with bleak-retry-connector==4.7.0
+          --with dbus-fast==5.0.22
+          python -c "import sys; from homeassistant.const import __version__ as v;
+          print(v); sys.exit(0 if v.startswith('2026.9.') else 1)"
+      - run: >-
+          uv run
+          --with pytest-homeassistant-custom-component==0.13.367
+          --with habluetooth==6.26.11
+          --with bleak-retry-connector==4.7.0
+          --with dbus-fast==5.0.22
+          pytest -q
