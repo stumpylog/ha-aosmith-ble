@@ -378,8 +378,10 @@ class AOSmithCoordinator(DataUpdateCoordinator[FeatureSet]):
             except Exception as err:
                 if self.closing:
                     return self.data
-                if isinstance(err, TimeoutError):
-                    await self._disconnect()
+                # A failed read can leave a link whose session is gone (the
+                # heater answers every read with a refusal), so always drop it
+                # and let the next poll reconnect.
+                await self._disconnect()
                 await self._raise_for(err)
             try:
                 await self._on_success(state)

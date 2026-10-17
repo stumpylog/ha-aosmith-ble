@@ -245,8 +245,8 @@ async def test_transient_errors_update_failed_scrubbed(
     assert coordinator.last_error is not None
     assert SECRET not in coordinator.last_error
     assert _connectivity(hass, config_entry) is None
+    assert _names(client)[-1] == "disconnect"
     if side == "connect":
-        assert _names(client)[-1] == "disconnect"
         assert coordinator.connecting is False
 
 
