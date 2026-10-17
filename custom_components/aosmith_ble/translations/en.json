@@ -1,0 +1,280 @@
+{
+  "title": "A. O. Smith BLE",
+  "config": {
+    "step": {
+      "user": {
+        "description": "Choose the heater to set up.",
+        "data": {
+          "address": "Bluetooth address"
+        }
+      },
+      "confirm": {
+        "description": "Close the A. O. Smith app. Press the Bluetooth button on the heater's panel once so its LED flashes. If it was already flashing, turn Bluetooth off and on at the panel. Then submit."
+      },
+      "reauth_confirm": {
+        "title": "Authenticate the heater again",
+        "description": "Close the A. O. Smith app. Press the Bluetooth button on the heater's panel once so its LED flashes. If it was already flashing, turn Bluetooth off and on at the panel. Then submit."
+      }
+    },
+    "error": {
+      "not_paired": "The heater is not in pairing mode. Press the Bluetooth button on the heater's panel once so its LED flashes, or turn Bluetooth off and on at the panel if it was already flashing, then submit again.",
+      "cannot_connect": "The heater could not be reached. Check that it is advertising (press the Bluetooth button on its panel) and that the A. O. Smith app is closed, then submit again.",
+      "no_connection_slots": "No Bluetooth connection to the heater is available. Either all connection slots on the adapter or proxy that hears the heater are in use, or that adapter or proxy is offline. Check that the adapter or proxy is online, free a connection slot, or add another proxy, then submit again.",
+      "session_rejected": "The heater rejected the session. Press the Bluetooth button on the heater's panel once, then submit again.",
+      "unsupported_units": "Set the heater's display units to Fahrenheit on its panel, then submit again.",
+      "unsupported_mtu": "This Bluetooth adapter or proxy negotiated too small an MTU. Use a different adapter or proxy.",
+      "unknown": "Unexpected error. Check the logs, then submit again.",
+      "unsupported_configuration": "The heater or its Bluetooth link is in a configuration this integration does not support. Check the logs and look for an integration update, then submit again."
+    },
+    "abort": {
+      "already_configured": "This heater is already configured.",
+      "already_in_progress": "Setup of this heater is already in progress.",
+      "no_devices_found": "No unconfigured A. O. Smith heaters were found. Press the Bluetooth button on the heater's panel so it advertises, then try again.",
+      "not_supported": "This device is not a supported A. O. Smith heater.",
+      "reauth_successful": "Reauthentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "poll_interval": "Poll interval (seconds)"
+        },
+        "data_description": {
+          "poll_interval": "How often the heater is read, 15-300 seconds."
+        }
+      }
+    }
+  },
+  "device": {
+    "water_heater": {
+      "name": "A. O. Smith {model}"
+    },
+    "water_heater_unknown_model": {
+      "name": "A. O. Smith water heater"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "problem": {
+        "name": "Problem"
+      }
+    },
+    "number": {
+      "electric_days": {
+        "name": "Electric mode days"
+      },
+      "vacation_days": {
+        "name": "Vacation mode days"
+      }
+    },
+    "select": {
+      "operating_mode": {
+        "name": "Operating mode",
+        "state": {
+          "hybrid": "Hybrid",
+          "heat_pump": "Heat pump",
+          "electric": "Electric",
+          "vacation": "Vacation"
+        }
+      }
+    },
+    "sensor": {
+      "fault": {
+        "name": "Fault",
+        "state": {
+          "none": "None",
+          "dry_fire": "Dry Fire",
+          "high_water_temperature": "High Water Temperature",
+          "upper_thermistor_sensor_failure": "Upper Thermistor Sensor Failure",
+          "lower_thermistor_sensor_failure": "Lower Thermistor Sensor Failure",
+          "internal_processor_error": "Internal Processor Error",
+          "power_supply_voltage_error": "Power Supply Voltage Error",
+          "upper_element_circuit_failure": "Upper Element Circuit Failure",
+          "lower_element_circuit_failure": "Lower Element Circuit Failure",
+          "coil_temperature_sensor_failure": "Coil Temperature Sensor Failure",
+          "suction_temperature_sensor_failure": "Suction Temperature Sensor Failure",
+          "discharge_temperature_sensor_failure": "Discharge Temperature Sensor Failure",
+          "ambient_temperature_sensor_failure": "Ambient Temperature Sensor Failure",
+          "outlet_temperature_sensor_failure": "Outlet Temperature Sensor Failure",
+          "water_leak": "Water Leak",
+          "anode_is_depleted": "Anode is Depleted",
+          "water_shut_off_valve_error": "Water Shut-off Valve Error",
+          "smart_valve_failure": "Smart Valve Failure",
+          "battery_low_br2032": "Battery Low (BR2032)",
+          "air_filter_is_dirty": "Air Filter is Dirty",
+          "condensate_management_error": "Condensate Management Error",
+          "compressor_low_pressure": "Compressor Low Pressure",
+          "compressor_error": "Compressor Error",
+          "high_discharge_temperature": "High Discharge Temperature",
+          "fan_error": "Fan Error",
+          "upper_thermostat_error": "Upper Thermostat Error",
+          "lower_thermostat_error": "Lower Thermostat Error",
+          "unknown": "Unknown fault"
+        },
+        "state_attributes": {
+          "code": {
+            "name": "Code"
+          }
+        }
+      },
+      "electric_days_remaining": {
+        "name": "Electric days remaining"
+      },
+      "vacation_days_remaining": {
+        "name": "Vacation days remaining"
+      }
+    }
+  },
+  "issues": {
+    "connectivity_not_advertising": {
+      "title": "{title}: Bluetooth signal not active",
+      "description": "The heater's Bluetooth signal is not active. Close the A. O. Smith app if it is open, then press the Bluetooth button on the heater's panel."
+    },
+    "connectivity_no_connection_slots": {
+      "title": "{title}: no Bluetooth connection available",
+      "description": "No Bluetooth connection to the heater is available. Either all connection slots on the adapter or proxy that hears the heater are in use, or that adapter or proxy is offline. Check that the adapter or proxy is online, free a connection slot, or add another proxy."
+    },
+    "connectivity_unreachable": {
+      "title": "{title}: heater unreachable",
+      "description": "The heater could not be reached. Close the A. O. Smith app if it is open, then press the Bluetooth button on the heater's panel. Also check that the heater is in range of the Bluetooth adapter or proxy."
+    },
+    "unsupported_configuration_units": {
+      "title": "{title}: display units not supported",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Set the display units",
+            "description": "Set the heater's display units to Fahrenheit on its panel, then select Retry.",
+            "submit": "Retry"
+          }
+        },
+        "abort": {
+          "still_failing": "The problem is still present. Follow the instructions in this issue, then select Retry again."
+        }
+      }
+    },
+    "unsupported_configuration_mtu": {
+      "title": "{title}: Bluetooth MTU too small",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Use a different Bluetooth adapter",
+            "description": "This Bluetooth adapter or proxy negotiated too small an MTU. Use a different Bluetooth adapter or proxy that negotiates a larger MTU, then select Retry.",
+            "submit": "Retry"
+          }
+        },
+        "abort": {
+          "still_failing": "The problem is still present. Follow the instructions in this issue, then select Retry again."
+        }
+      }
+    },
+    "unsupported_configuration_other": {
+      "title": "{title}: configuration not supported",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Retry setup",
+            "description": "The heater or its Bluetooth link is in a configuration this integration does not support. Check the logs and install an integration update if one is available, then select Retry.",
+            "submit": "Retry"
+          }
+        },
+        "abort": {
+          "still_failing": "The problem is still present. Follow the instructions in this issue, then select Retry again."
+        }
+      }
+    },
+    "unsupported_device": {
+      "title": "{title}: model {model} firmware {firmware} not supported",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Retry setup",
+            "description": "This model or firmware is not supported yet. Press the Bluetooth button on the heater's panel, then download diagnostics from this entry and attach them to a new issue. If an integration update added support for this model, install it, press the Bluetooth button again, then select Retry.",
+            "submit": "Retry"
+          }
+        },
+        "abort": {
+          "still_failing": "The problem is still present. Follow the instructions in this issue, then select Retry again."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "setpoint_out_of_range": {
+      "message": "The setpoint {setpoint} °F is outside this heater's range of {min}-{max} °F."
+    },
+    "fault_active": {
+      "message": "The heater has an active fault and refuses changes until it is cleared."
+    },
+    "mode_not_writable": {
+      "message": "The mode {mode} cannot be set on this heater."
+    },
+    "invalid_duration": {
+      "message": "The duration for {mode} must be between {min} and {max} days."
+    },
+    "write_refused": {
+      "message": "The heater refused the change: {error}"
+    },
+    "write_failed": {
+      "message": "The change could not be sent to the heater: {error}"
+    },
+    "shutting_down": {
+      "message": "The integration is shutting down, so the change was not sent."
+    },
+    "reauth_required": {
+      "message": "The heater must be authenticated again before it accepts changes. Follow the reauthentication prompt, then retry."
+    },
+    "not_advertising": {
+      "message": "The heater is not advertising. Close the A. O. Smith app if it is open, then press the Bluetooth button on the heater's panel."
+    },
+    "cannot_connect": {
+      "message": "The heater could not be reached: {error}"
+    },
+    "no_connection_slots": {
+      "message": "No Bluetooth connection to the heater is available. Either all connection slots on the adapter or proxy that hears the heater are in use, or that adapter or proxy is offline. Check that the adapter or proxy is online, free a connection slot, or add another proxy."
+    },
+    "auth_failed": {
+      "message": "The heater rejected the session. Reauthenticate this entry."
+    },
+    "reauth_in_progress": {
+      "message": "Reauthentication is in progress, so the entry was not set up. Finish the reauthentication prompt."
+    },
+    "unsupported_configuration_units": {
+      "message": "Set the heater's display units to Fahrenheit on its panel, then retry."
+    },
+    "unsupported_configuration_mtu": {
+      "message": "This Bluetooth adapter or proxy negotiated too small an MTU. Use a different adapter or proxy."
+    },
+    "unsupported_configuration_other": {
+      "message": "The heater or its Bluetooth link is in a configuration this integration does not support. See the repair issue."
+    },
+    "no_permanent_mode": {
+      "message": "This heater has no permanent mode to return to from Vacation."
+    }
+  },
+  "selector": {
+    "timed_mode": {
+      "options": {
+        "electric": "Electric",
+        "vacation": "Vacation"
+      }
+    }
+  },
+  "services": {
+    "set_timed_mode": {
+      "name": "Set timed mode",
+      "description": "Starts Electric or Vacation mode for a number of days. The stored day counts are not changed.",
+      "fields": {
+        "mode": {
+          "name": "Mode",
+          "description": "The timed mode to start."
+        },
+        "days": {
+          "name": "Days",
+          "description": "How many days the mode lasts: 1-7 for Electric, 1-99 for Vacation."
+        }
+      }
+    }
+  }
+}
