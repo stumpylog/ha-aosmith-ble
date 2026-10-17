@@ -1,0 +1,32 @@
+[project]
+name = "ha-aosmith-ble"
+version = "0.0.0"
+description = "Development tooling for the aosmith_ble Home Assistant integration."
+requires-python = ">=3.14"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "aiousbwatcher>=1.1.2",
+  "aosmith-ble~=0.1.1",
+  "prek",
+  "pytest-homeassistant-custom-component",
+  "ruff",
+  "serialx>=1.14",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+lint.select = [ "ASYNC", "B", "E", "F", "I", "RUF", "SIM", "UP" ]
+
+[tool.codespell]
+ignore-words-list = "hass"
+
+[tool.pytest]
+ini_options.asyncio_mode = "auto"
+ini_options.testpaths = [ "tests" ]

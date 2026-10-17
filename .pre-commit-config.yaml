@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.2
+    hooks:
+      - id: codespell
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: v2.21.1
+    hooks:
+      - id: pyproject-fmt
+  - repo: local
+    hooks:
+      - id: check-identifiers
+        name: check identifiers and em dashes
+        entry: python scripts/check_identifiers.py
+        language: system
+        pass_filenames: true
