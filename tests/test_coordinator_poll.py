@@ -16,6 +16,7 @@ from aosmith_ble import (
     ProtocolError,
     ReadRefusedError,
     SessionError,
+    Trust,
     UnknownDeviceError,
     UnsupportedConfigurationError,
     ValidationError,
@@ -103,6 +104,8 @@ async def test_poll_connects_when_disconnected(
     data = await coordinator._async_update_data()
     assert data == client.state
     assert _names(client) == ["connect", "async_get_state"]
+    # PARTIAL, for the experimental hot water availability sensor.
+    assert client.calls[-1] == ("async_get_state", Trust.PARTIAL)
 
 
 async def test_poll_connected_reads_only(
@@ -548,7 +551,7 @@ async def test_success_bookkeeping_error_is_scrubbed_and_contained(
         coordinator.store, "async_save", side_effect=OSError(f"disk {SECRET}")
     ):
         state = await coordinator._async_update_data()
-    assert state is client.state
+    assert state == client.state
     assert coordinator.failure_count == 0
     warnings = [r for r in caplog.records if r.levelname == "WARNING"]
     assert len(warnings) == 1

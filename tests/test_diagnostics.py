@@ -431,6 +431,12 @@ async def test_normal_entry_reports_coordinator_state_only(
     assert output["profile"]["id"] == "placeholder-profile"
     assert output["profile"]["fields"]["setpoint"] == {"read": "ok", "write": "ok"}
     assert output["features"]["setpoint"] == {"value": 120.0, "trust": "ok"}
+    # The raw word, so values outside the known levels show up in reports.
+    assert output["features"]["hot_water_availability"] == {
+        "value": 10,
+        "trust": "partial",
+    }
+    assert output["profile"]["fields"]["hot_water_availability"]["read"] == "partial"
     health = output["health"]
     assert health["consecutive_failures"] == 1
     assert health["last_error_class"] == "BleakError"

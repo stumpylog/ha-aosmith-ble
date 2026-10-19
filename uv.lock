@@ -444,15 +444,15 @@ wheels = [
 
 [[package]]
 name = "aosmith-ble"
-version = "0.1.1"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bleak" },
     { name = "bleak-retry-connector" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/43/18/d568dd623f77d339710686e8ee48435a9a169ddae708a81516381abcf198/aosmith_ble-0.1.1.tar.gz", hash = "sha256:a18f91964ce4bc1832dbf08ad7fcfbe685513784db833b14997c3a3e4d99ff1c", size = 144349, upload-time = "2026-10-16T15:52:02.266Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fa/77/4aa9fe5cd79a38470143ad0daf6bb450d979b38812d3a82e5484b0787317/aosmith_ble-0.2.0.tar.gz", hash = "sha256:0317ae551aa0bae5e0f9239c2b2df5f8b2800b568a8c04359c1c6a18686457cb", size = 150828, upload-time = "2026-10-19T17:19:49.547Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/ef/c1b9d73bfa047b4cac003a1c740cb3354002f8794ffa7e090211d920c4f7/aosmith_ble-0.1.1-py3-none-any.whl", hash = "sha256:709b1efdae4b36ccb458f49d088271de3c7fb23581b57128022d5d252000f482", size = 35635, upload-time = "2026-10-16T15:52:00.869Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/d8/92ed92b3f50f893db14693f3b6e1c860e28f714829a0a2b8ad7516f7e070/aosmith_ble-0.2.0-py3-none-any.whl", hash = "sha256:245388f6717994db66f16838dd9ddbefae76b752bbed432b0e92041bb38ce2c5", size = 36928, upload-time = "2026-10-19T17:19:48.155Z" },
 ]
 
 [[package]]
@@ -1563,11 +1563,11 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "aiousbwatcher", specifier = ">=1.1.2" },
-    { name = "aosmith-ble", specifier = "~=0.1.1" },
+    { name = "aosmith-ble", specifier = "~=0.2.0" },
     { name = "prek" },
     { name = "pytest-homeassistant-custom-component" },
     { name = "ruff" },
-    { name = "serialx", specifier = ">=1.14.0" },
+    { name = "serialx", specifier = ">=1.14" },
 ]
 
 [[package]]

@@ -107,6 +107,22 @@ appears if the heater accepts writes to it.
 | Vacation days remaining | `sensor` | Days left while in Vacation mode, otherwise 0. |
 | Electric mode days | `number` | 1-7. Configuration entity. |
 | Vacation mode days | `number` | 1-99. Configuration entity. |
+| Power | `sensor` | Watts, as reported by the heater for whatever is running. See below. |
+| Energy | `sensor` | The heater's running total of that power, in kWh. See below. |
+| Hot water availability | `sensor` | Experimental and disabled by default: `low`, `medium`, `high`, or `unknown`. Attribute `raw` holds the number. See below. |
+
+Power and energy are the heater's own figures, not a meter. On the HPTS-50 the power
+reads a fixed 356 W while the compressor runs, 4500 W while an element runs (its
+rating), and 0 when idle. Energy is the running total of that figure. It persists
+across reconnects and overnight. Whether it ever resets (after a power loss, for
+example) is unknown, and it has not been checked against an external meter. Both
+work with the energy dashboard.
+
+Hot water availability is experimental. It has been seen to rise during a reheat,
+but has never been seen to fall, and it held at its highest level through a draw
+large enough to start the compressor, so it is coarse at best. The level names come
+from a third-party report. If you enable it, its history helps confirm what it
+means. Please report any `raw` value other than 0, 5 or 10.
 
 The service `aosmith_ble.set_timed_mode` (fields `mode`: `electric` or `vacation`,
 and `days`) starts a timed mode directly on one or more water heater entities.
@@ -192,7 +208,7 @@ debug level. Scrub Home Assistant logs before sharing them.
 
 ## Known limits
 
-- No tank temperature and no energy data.
+- No tank temperature.
 - The heater accepts one Bluetooth central at a time, so the vendor app cannot
   connect while the integration is loaded. Disable the entry to use the app.
 - Temperatures are Fahrenheit only; the heater's panel must be set to Fahrenheit.

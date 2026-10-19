@@ -12,7 +12,7 @@ dependencies = []
 [dependency-groups]
 dev = [
   "aiousbwatcher>=1.1.2",
-  "aosmith-ble~=0.1.1",
+  "aosmith-ble~=0.2.0",
   "prek",
   "pytest-homeassistant-custom-component",
   "ruff",

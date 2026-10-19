@@ -13,6 +13,7 @@ from aosmith_ble import (
     Feature,
     FeatureSet,
     FieldName,
+    HotWaterAvailability,
     Mode,
     Profile,
     Trust,
@@ -20,6 +21,7 @@ from aosmith_ble import (
     UnsupportedConfigurationError,
 )
 from aosmith_ble.codecs import ModeWord
+from aosmith_ble.profiles import trust_at_least
 from aosmith_ble.profiles.bundled import BUNDLED_PROFILES
 
 from custom_components.aosmith_ble.const import (
@@ -44,8 +46,16 @@ def make_feature_set(
     vacation_days: int | None = 0,
     electric_days: int | None = 0,
     guest_days: int | None = None,
+    power: int | None = 356,
+    energy: int | None = 123_456,
+    availability: HotWaterAvailability | int | None = HotWaterAvailability.HIGH,
+    trusts: dict[FieldName, Trust] | None = None,
 ) -> FeatureSet:
-    """A FeatureSet with the fields a poll returns. Pass None to omit a field."""
+    """A FeatureSet with the fields a PARTIAL poll returns. None omits a field.
+
+    Every field is graded OK except hot water availability, which is PARTIAL as
+    in the bundled profile; `trusts` overrides a field's grade.
+    """
     if mode is None:
         mode = ModeWord(duration_days=0, mode=int(Mode.HEAT_PUMP))
     values: dict[FieldName, tuple[object, bool]] = {
@@ -55,9 +65,18 @@ def make_feature_set(
         FieldName.VACATION_DAYS_REMAINING: (vacation_days, False),
         FieldName.ELECTRIC_DAYS_REMAINING: (electric_days, False),
         FieldName.GUEST_DAYS_REMAINING: (guest_days, False),
+        FieldName.POWER_W: (power, False),
+        FieldName.ENERGY_WH: (energy, False),
+        FieldName.HOT_WATER_AVAILABILITY: (availability, False),
     }
+    grades = {FieldName.HOT_WATER_AVAILABILITY: Trust.PARTIAL, **(trusts or {})}
     return {
-        name: Feature(id=name, value=value, trust=Trust.OK, writable=writable)
+        name: Feature(
+            id=name,
+            value=value,
+            trust=grades.get(name, Trust.OK),
+            writable=writable,
+        )
         for name, (value, writable) in values.items()
         if value is not None
     }
@@ -256,7 +275,12 @@ class FakeClient:
     async def async_get_state(self, min_trust: Trust = Trust.OK) -> FeatureSet:
         self.calls.append(("async_get_state", min_trust))
         await self._locked_op(self.read_effects)
-        return self.state
+        # As the library does: fields graded below min_trust are absent.
+        return {
+            name: feature
+            for name, feature in self.state.items()
+            if trust_at_least(feature.trust, min_trust)
+        }
 
     async def async_set_setpoint(self, degf: float) -> None:
         self.calls.append(("async_set_setpoint", degf))

@@ -9,7 +9,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from aosmith_ble import DeviceInfo, FieldName, Mode, ReadRefusedError, Trust
+from aosmith_ble import (
+    DeviceInfo,
+    FieldName,
+    HotWaterAvailability,
+    Mode,
+    ReadRefusedError,
+    Trust,
+)
 from aosmith_ble.codecs import ModeWord
 from aosmith_ble.const import FAULT_CODES
 from homeassistant.const import (
@@ -55,6 +62,9 @@ ALL_KEYS = {
     "vacation_days_remaining": "sensor",
     "electric_days": "number",
     "vacation_days": "number",
+    "power": "sensor",
+    "energy": "sensor",
+    "hot_water_availability": "sensor",
 }
 
 
@@ -142,6 +152,10 @@ def test_every_option_and_entity_is_translated() -> None:
             assert entity[platform][key]["name"]
     for code, key in FAULT_KEYS.items():
         assert entity["sensor"]["fault"]["state"][key] == FAULT_CODES[code]
+    from custom_components.aosmith_ble.sensor import AVAILABILITY_OPTIONS
+
+    availability = entity["sensor"]["hot_water_availability"]
+    assert set(availability["state"]) == set(AVAILABILITY_OPTIONS)
 
 
 @pytest.mark.parametrize(("code", "expected"), [(0, STATE_OFF), (31, STATE_ON)])
@@ -171,6 +185,102 @@ async def test_counters_read_zero_unless_their_mode_is_active(
     assert electric_state.state == electric
     assert electric_state.attributes["unit_of_measurement"] == "d"
     assert heater.state("sensor", "vacation_days_remaining").state == vacation
+
+
+# Power, energy and hot water availability
+
+
+async def test_power_and_energy_sensors(load_heater: Load) -> None:
+    heater = await load_heater(state=make_feature_set(power=4500, energy=123_456))
+    power = heater.state("sensor", "power")
+    assert power.state == "4500"
+    assert power.attributes["device_class"] == "power"
+    assert power.attributes["unit_of_measurement"] == "W"
+    assert power.attributes["state_class"] == "measurement"
+    energy = heater.state("sensor", "energy")
+    # Native Wh, shown in the suggested kWh.
+    assert float(energy.state) == pytest.approx(123.456)
+    assert energy.attributes["device_class"] == "energy"
+    assert energy.attributes["unit_of_measurement"] == "kWh"
+    assert energy.attributes["state_class"] == "total_increasing"
+
+
+async def test_energy_none_is_unknown_not_zero(load_heater: Load) -> None:
+    heater = await load_heater()
+    later = make_feature_set()
+    later[FieldName.ENERGY_WH] = dataclasses.replace(
+        later[FieldName.ENERGY_WH], value=None
+    )
+    await heater.refresh(later)
+    assert heater.state("sensor", "energy").state == STATE_UNKNOWN
+
+
+def _enable_availability(hass: HomeAssistant, config_entry: Any) -> None:
+    """Register the disabled-by-default sensor as enabled before setup."""
+    config_entry.add_to_hass(hass)
+    er.async_get(hass).async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"{PLACEHOLDER_ADDRESS}_hot_water_availability",
+        config_entry=config_entry,
+    )
+
+
+async def test_availability_disabled_by_default(
+    hass: HomeAssistant, load_heater: Load
+) -> None:
+    heater = await load_heater()
+    entity_id = heater.entity_id("sensor", "hot_water_availability")
+    assert entity_id is not None
+    entry = er.async_get(hass).async_get(entity_id)
+    assert entry is not None
+    assert entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+    assert hass.states.get(entity_id) is None
+
+
+@pytest.mark.parametrize(
+    ("value", "expected", "raw"),
+    [
+        (HotWaterAvailability.LOW, "low", 0),
+        (HotWaterAvailability.MEDIUM, "medium", 5),
+        (HotWaterAvailability.HIGH, "high", 10),
+        (7, "unknown", 7),
+    ],
+)
+async def test_availability_state_and_raw_word(
+    hass: HomeAssistant,
+    config_entry: Any,
+    load_heater: Load,
+    value: HotWaterAvailability | int,
+    expected: str,
+    raw: int,
+) -> None:
+    _enable_availability(hass, config_entry)
+    heater = await load_heater(state=make_feature_set(availability=value))
+    state = heater.state("sensor", "hot_water_availability")
+    assert state.state == expected
+    assert state.attributes["raw"] == raw
+    assert state.attributes["device_class"] == "enum"
+    assert expected in state.attributes["options"]
+
+
+async def test_entities_need_trust_ok_except_availability(
+    hass: HomeAssistant, load_heater: Load
+) -> None:
+    """A field the PARTIAL poll returns gets no entity unless the entity allows it."""
+    heater = await load_heater(
+        state=make_feature_set(
+            trusts={
+                FieldName.POWER_W: Trust.PARTIAL,
+                FieldName.FAULT: Trust.PARTIAL,
+            }
+        )
+    )
+    ids = _registry_ids(hass, heater)
+    for key in ("power", "fault", "problem"):
+        assert f"{PLACEHOLDER_ADDRESS}_{key}" not in ids
+    assert f"{PLACEHOLDER_ADDRESS}_energy" in ids
+    assert f"{PLACEHOLDER_ADDRESS}_hot_water_availability" in ids
 
 
 # Number entities
@@ -288,8 +398,13 @@ async def test_entities_unavailable_when_update_fails(load_heater: Load) -> None
             {"fault": 0},
             {"operating_mode", "electric_days", "vacation_days"},
         ),
+        (
+            {},
+            {"power": None, "energy": None, "availability": None},
+            {"power", "energy", "hot_water_availability"},
+        ),
     ],
-    ids=["full", "no_vacation_write", "no_electric", "no_writable_modes"],
+    ids=["full", "no_vacation_write", "no_electric", "no_writable_modes", "no_b27"],
 )
 async def test_entities_created_per_profile(
     hass: HomeAssistant,

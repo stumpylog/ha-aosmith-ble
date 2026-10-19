@@ -34,6 +34,7 @@ from aosmith_ble import (
     NotPairedError,
     Profile,
     SessionError,
+    Trust,
     UnknownDeviceError,
     UnsupportedConfigurationError,
     ValidationError,
@@ -81,6 +82,10 @@ _EXPECTED_FAILURES: tuple[type[BaseException], ...] = (
     AOSmithError,
     OSError,
 )
+
+# The poll includes PARTIAL fields for the experimental entities; every other
+# entity checks for trust OK itself (see entity.is_readable).
+POLL_MIN_TRUST = Trust.PARTIAL
 
 # A translated refusal: (translation key, placeholders).
 _Refusal = tuple[str, dict[str, str]]
@@ -339,13 +344,13 @@ class AOSmithCoordinator(DataUpdateCoordinator[FeatureSet]):
         if not self.client.is_connected:
             await self._connect()
         try:
-            return await self.client.async_get_state()
+            return await self.client.async_get_state(min_trust=POLL_MIN_TRUST)
         except SessionError as err:
             # The library may have connected implicitly inside the read, so a
             # challenge rejection here counts as the first one.
             await self._disconnect()
             await self._connect(prior_rejection=isinstance(err, ChallengeRejectedError))
-            return await self.client.async_get_state()
+            return await self.client.async_get_state(min_trust=POLL_MIN_TRUST)
 
     async def _async_update_data(self) -> FeatureSet:
         if self.closing:

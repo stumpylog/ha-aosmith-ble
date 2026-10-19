@@ -30,7 +30,7 @@ def test_manifest_matches_spec() -> None:
     assert manifest["domain"] == "aosmith_ble"
     assert manifest["name"] == "A. O. Smith BLE"
     assert manifest["codeowners"] == ["@stumpylog"]
-    assert manifest["requirements"] == ["aosmith-ble~=0.1.1"]
+    assert manifest["requirements"] == ["aosmith-ble~=0.2.0"]
     assert manifest["dependencies"] == ["bluetooth_adapters"]
     assert manifest["bluetooth"] == [{"local_name": "iCOMM-*", "connectable": True}]
     assert manifest["config_flow"] is True

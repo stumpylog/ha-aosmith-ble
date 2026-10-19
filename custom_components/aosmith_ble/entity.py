@@ -9,6 +9,7 @@ from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH, DeviceIn
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from aosmith_ble import FeatureSet, FieldName, Mode, Trust
+from aosmith_ble.profiles import trust_at_least
 
 from .const import CONF_ADDRESS, DAYS_RANGE, DOMAIN, PERMANENT_MODES
 from .coordinator import AOSmithCoordinator
@@ -21,15 +22,25 @@ KEY_ELECTRIC_DAYS_REMAINING = "electric_days_remaining"
 KEY_VACATION_DAYS_REMAINING = "vacation_days_remaining"
 KEY_ELECTRIC_DAYS = "electric_days"
 KEY_VACATION_DAYS = "vacation_days"
+KEY_POWER = "power"
+KEY_ENERGY = "energy"
+KEY_HOT_WATER_AVAILABILITY = "hot_water_availability"
 
 
 def _data(coordinator: AOSmithCoordinator) -> FeatureSet:
     return coordinator.data or {}
 
 
-def is_readable(coordinator: AOSmithCoordinator, name: FieldName) -> bool:
-    """The field is in the FeatureSet (the poll reads at trust OK)."""
-    return name in _data(coordinator)
+def is_readable(
+    coordinator: AOSmithCoordinator, name: FieldName, min_trust: Trust = Trust.OK
+) -> bool:
+    """The field is in the FeatureSet with read trust at least min_trust.
+
+    The poll reads down to trust PARTIAL, so an entity that needs OK must ask
+    for it here rather than rely on the field being absent.
+    """
+    feature = _data(coordinator).get(name)
+    return feature is not None and trust_at_least(feature.trust, min_trust)
 
 
 def is_writable(coordinator: AOSmithCoordinator, name: FieldName) -> bool:
@@ -69,6 +80,12 @@ def created_keys(coordinator: AOSmithCoordinator) -> set[str]:
         keys.add(KEY_ELECTRIC_DAYS_REMAINING)
     if is_readable(coordinator, FieldName.VACATION_DAYS_REMAINING):
         keys.add(KEY_VACATION_DAYS_REMAINING)
+    if is_readable(coordinator, FieldName.POWER_W):
+        keys.add(KEY_POWER)
+    if is_readable(coordinator, FieldName.ENERGY_WH):
+        keys.add(KEY_ENERGY)
+    if is_readable(coordinator, FieldName.HOT_WATER_AVAILABILITY, Trust.PARTIAL):
+        keys.add(KEY_HOT_WATER_AVAILABILITY)
     if Mode.ELECTRIC in modes:
         keys.add(KEY_ELECTRIC_DAYS)
     if Mode.VACATION in modes:
@@ -131,13 +148,16 @@ class AOSmithEntity(CoordinatorEntity[AOSmithCoordinator]):
         coordinator: AOSmithCoordinator,
         key: str,
         fields: Iterable[FieldName] = (),
+        min_trust: Trust = Trust.OK,
     ) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = unique_id(coordinator, key)
         self._attr_device_info = device_info(coordinator)
         # Only the fields present at creation: a later FeatureSet missing one
         # makes the entity unavailable instead of raising KeyError.
-        self._fields = tuple(f for f in fields if is_readable(coordinator, f))
+        self._fields = tuple(
+            f for f in fields if is_readable(coordinator, f, min_trust)
+        )
 
     @property
     def available(self) -> bool:
