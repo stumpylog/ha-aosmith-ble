@@ -1,4 +1,4 @@
-# A. O. Smith BLE
+# <img src="https://raw.githubusercontent.com/stumpylog/ha-aosmith-ble/main/custom_components/aosmith_ble/brand/icon.png" alt="" height="40"> A. O. Smith BLE
 
 A Home Assistant custom integration for A. O. Smith heat pump water heaters that
 speak Bluetooth Low Energy (the heater advertises as `iCOMM-AC000W037XXXXXX`, where
